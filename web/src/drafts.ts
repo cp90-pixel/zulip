@@ -417,6 +417,10 @@ function maybe_notify(no_notify: boolean): void {
 
 export let compose_draft_id: string | undefined;
 
+// This is the seconds between draft saves.
+const DRAFT_SAVE_INTERVAL_SECONDS = 60;
+let last_saved_draft_timestamp = 0;
+
 export function set_compose_draft_id(draft_id: string | undefined): void {
     compose_draft_id = draft_id;
 }
@@ -461,6 +465,7 @@ export let update_draft = (opts: UpdateDraftOptions = {}): string | undefined =>
         const changed = draft_model.editDraft(draft_id, draft);
         if (changed) {
             maybe_notify(no_notify);
+            last_saved_draft_timestamp = Date.now();
         }
         return draft_id;
     }
@@ -470,9 +475,16 @@ export let update_draft = (opts: UpdateDraftOptions = {}): string | undefined =>
     const new_draft_id = draft_model.addDraft(draft, update_count);
     compose_draft_id = new_draft_id;
     maybe_notify(no_notify);
+    last_saved_draft_timestamp = Date.now();
 
     return new_draft_id;
 };
+
+export function update_draft_if_time_passed(): void {
+    if (Date.now() - last_saved_draft_timestamp > DRAFT_SAVE_INTERVAL_SECONDS * 1000) {
+        update_draft({no_notify: true});
+    }
+}
 
 export function rewire_update_draft(value: typeof update_draft): void {
     update_draft = value;
