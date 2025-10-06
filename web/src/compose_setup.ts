@@ -108,6 +108,7 @@ export function initialize(): void {
         if (compose_state.get_is_content_unedited_restored_draft()) {
             compose_state.set_is_content_unedited_restored_draft(false);
         }
+        drafts.update_draft_if_time_passed();
     });
 
     $("#compose form").on("submit", (e) => {
